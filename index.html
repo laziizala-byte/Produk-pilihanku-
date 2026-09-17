@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRODUK PILIHANKU</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#165DFF', dark: '#1E293B', bgLight: '#F8FAFC' }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#F8FAFC] text-[#1E293B] font-sans min-h-screen flex flex-col">
+
+  <header class="bg-white shadow-sm border-b sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="#" onclick="showPage('public')" class="font-bold text-xl text-[#165DFF] tracking-wide">PRODUK PILIHANKU</a>
+      <a href="https://wa.me/6281234567890" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-sm">
+        <i class="fa-brands fa-whatsapp text-base"></i> WhatsApp
+      </a>
+    </div>
+  </header>
+
+  <main id="page-public" class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+    <section class="text-center my-4">
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">Temukan Produk Pilihan dari Berbagai Marketplace</h1>
+      <p class="text-sm text-gray-600 max-w-xl mx-auto">Cari produk terbaik dengan mudah menggunakan kode produk. Dapatkan langsung dari Shopee, TikTok Shop, Tokopedia, Lazada, Blibli & lainnya</p>
+    </section>
+
+    <div class="max-w-md mx-auto mb-6">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
+        <input type="text" id="search-input" oninput="renderProducts()" placeholder="Cari nama atau kode produk..." class="w-full pl-9 pr-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#165DFF] bg-white shadow-sm text-sm">
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-xs font-semibold text-gray-500 mb-1">KATEGORI</label>
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-filters">
+        <button onclick="setCategory('Semua')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white shadow-sm whitespace-nowrap">Semua</button>
+        <button onclick="setCategory('DAP')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">DAP — Alat Dapur</button>
+        <button onclick="setCategory('ELE')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">ELE — Elektronik</button>
+        <button onclick="setCategory('FAS')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">FAS — Fashion</button>
+        <button onclick="setCategory('KEC')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">KEC — Kecantikan</button>
+        <button onclick="setCategory('RTG')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">RTG — Rumah Tangga</button>
+        <button onclick="setCategory('KES')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">KES — Kesehatan</button>
+        <button onclick="setCategory('GAD')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">GAD — Gadget & Aksesoris</button>
+        <button onclick="setCategory('OTO')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">OTO — Otomotif</button>
+        <button onclick="setCategory('BAY')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">BAY — Perlengkapan Bayi</button>
+        <button onclick="setCategory('VIR')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap">VIR — Produk Unik & Viral</button>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <label class="block text-xs font-semibold text-gray-500 mb-1">MARKETPLACE</label>
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="mp-filters">
+        <button onclick="setMarketplace('Semua')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white shadow-sm whitespace-nowrap">Semua</button>
+        <button onclick="setMarketplace('Shopee')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-orange-600 border-orange-200 whitespace-nowrap">Shopee</button>
+        <button onclick="setMarketplace('TikTok Shop')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-black border-gray-300 whitespace-nowrap">TikTok Shop</button>
+        <button onclick="setMarketplace('Tokopedia')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-green-600 border-green-200 whitespace-nowrap">Tokopedia</button>
+        <button onclick="setMarketplace('Lazada')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-blue-600 border-blue-200 whitespace-nowrap">Lazada</button>
+        <button onclick="setMarketplace('Blibli')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-cyan-600 border-cyan-200 whitespace-nowrap">Blibli</button>
+      </div>
+    </div>
+
+    <div class="flex border-b mb-6">
+      <button id="tab-newest" onclick="setTab('newest')" class="py-2 px-4 border-b-2 border-[#165DFF] font-semibold text-sm text-[#165DFF]">Produk Terbaru</button>
+      <button id="tab-popular" onclick="setTab('popular')" class="py-2 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">Produk Populer</button>
+    </div>
+
+    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  </main>
+
+  <main id="page-admin" class="max-w-4xl mx-auto px-4 py-6 flex-grow w-full hidden">
+    <div id="admin-login-view" class="max-w-sm mx-auto bg-white p-6 rounded-2xl shadow-sm border mt-10">
+      <h2 class="text-xl font-bold mb-4 text-center">Login Admin</h2>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold mb-1">Email</label>
+          <input type="email" id="admin-email" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#165DFF]">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Password</label>
+          <input type="password" id="admin-password" required class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#165DFF]">
+        </div>
+        <button type="submit" class="w-full bg-[#165DFF] text-white py-2 rounded-lg font-medium text-sm shadow">Masuk</button>
+      </form>
+    </div>
+
+    <div id="admin-dashboard-view" class="hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Panel Admin PRODUK PILIHANKU</h2>
+        <button onclick="handleLogout()" class="bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium">Logout</button>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border mb-6">
+        <h3 id="form-title" class="font-bold text-sm mb-3">Tambah Produk Baru</h3>
+        <form onsubmit="handleSaveProduct(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input type="hidden" id="prod-id">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Kode Produk (e.g. DAP-01)</label>
+            <input type="text" id="prod-code" required class="w-full border rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Nama Produk</label>
+            <input type="text" id="prod-name" required class="w-full border rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Kategori</label>
+            <select id="prod-category" required class="w-full border rounded-lg p-2 text-xs">
+              <option value="DAP">DAP — Alat Dapur</option>
+              <option value="ELE">ELE — Elektronik</option>
+              <option value="FAS">FAS — Fashion</option>
+              <option value="KEC">KEC — Kecantikan</option>
+              <option value="RTG">RTG — Rumah Tangga</option>
+              <option value="KES">KES — Kesehatan</option>
+              <option value="GAD">GAD — Gadget & Aksesoris</option>
+              <option value="OTO">OTO — Otomotif</option>
+              <option value="BAY">BAY — Perlengkapan Bayi</option>
+              <option value="VIR">VIR — Produk Unik & Viral</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Marketplace</label>
+            <select id="prod-marketplace" required class="w-full border rounded-lg p-2 text-xs">
+              <option value="Shopee">Shopee</option>
+              <option value="TikTok Shop">TikTok Shop</option>
+              <option value="Tokopedia">Tokopedia</option>
+              <option value="Lazada">Lazada</option>
+              <option value="Blibli">Blibli</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">URL Gambar</label>
+            <input type="url" id="prod-image" required class="w-full border rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">URL Affiliate</label>
+            <input type="url" id="prod-affiliate" required class="w-full border rounded-lg p-2 text-xs">
+          </div>
+          <div class="flex items-center gap-4 sm:col-span-2 my-1">
+            <label class="text-xs font-semibold flex items-center gap-1.5"><input type="checkbox" id="prod-popular"> Produk Populer</label>
+            <label class="text-xs font-semibold flex items-center gap-1.5"><input type="checkbox" id="prod-newest" checked> Produk Terbaru</label>
+          </div>
+          <div class="sm:col-span-2 flex gap-2">
+            <button type="submit" class="bg-[#165DFF] text-white px-4 py-2 rounded-lg text-xs font-medium shadow">Simpan Produk</button>
+            <button type="button" onclick="resetForm()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-medium">Batal</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-gray-50 border-b">
+              <tr>
+                <th class="p-3">Kode</th>
+                <th class="p-3">Nama</th>
+                <th class="p-3">Kat / MP</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body" class="divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="share-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl relative">
+      <button onclick="closeShareModal()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      <h3 class="font-bold text-base mb-3">Bagikan Produk</h3>
+      <div id="share-info" class="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl mb-4 space-y-1"></div>
+      <div class="grid grid-cols-1 gap-2">
+        <button onclick="shareWA()" class="w-full bg-green-500 text-white py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-2 shadow-sm"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim WhatsApp</button>
+        <button onclick="shareFB()" class="w-full bg-blue-600 text-white py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-2 shadow-sm"><i class="fa-brands fa-facebook text-sm"></i> Facebook</button>
+        <button onclick="copyText()" class="w-full bg-gray-800 text-white py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-2 shadow-sm"><i class="fa-regular fa-copy text-sm"></i> Salin Teks</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t mt-auto py-4 text-center text-xs text-gray-500">
+    <p>&copy; 2026 PRODUK PILIHANKU. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://xhckxmzclsq.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_cwQsnW91_QwJn0lXVVclFA_vCFG0UZq';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allProducts = [];
+    let currentCategory = 'Semua';
+    let currentMarketplace = 'Semua';
+    let currentTab = 'newest';
+    let activeShareProduct = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash === '#admin' || window.location.pathname === '/admin') {
+        showPage('admin');
+      } else {
+        showPage('public');
+      }
+      checkAuth();
+      fetchProducts();
+    });
+
+    function showPage(page) {
+      document.getElementById('page-public').classList.toggle('hidden', page !== 'public');
+      document.getElementById('page-admin').classList.toggle('hidden', page !== 'admin');
+    }
+
+    async function fetchProducts() {
+      const { data, error } = await db.from('products').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        allProducts = data;
+        renderProducts();
+        renderAdminTable();
+      }
+    }
+
+    function renderProducts() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filtered = allProducts.filter(p => {
+        const matchSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search);
+        const matchCat = currentCategory === 'Semua' || p.category === currentCategory;
+        const matchMp = currentMarketplace === 'Semua' || p.marketplace === currentMarketplace;
+        const matchTab = currentTab === 'newest' ? p.is_newest : p.is_popular;
+        return matchSearch && matchCat && matchMp && matchTab;
+      });
+
+      const grid = document.getElementById('product-grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 text-sm">Tidak ada produk ditemukan.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-xl shadow-sm border hover:-translate-y-1 transition-transform duration-200 overflow-hidden flex flex-col justify-between">
+          <div class="relative">
+            <img src="${p.image_url}" alt="${p.name}" class="w-full h-36 object-cover bg-gray-100">
+            <span class="absolute top-2 left-2 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">${p.code}</span>
+            <span class="absolute top-2 right-2 ${getMpBadgeClass(p.marketplace)} text-[10px] px-1.5 py-0.5 rounded font-bold">${p.marketplace}</span>
+          </div>
+          <div class="p-3 flex-grow flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] text-gray-400 uppercase font-semibold">${p.category}</span>
+              <h3 class="text-xs font-bold line-clamp-2 mt-0.5 mb-2">${p.name}</h3>
+            </div>
+            <div class="grid grid-cols-1 gap-1.5 mt-2">
+              <a href="${p.affiliate_url}" target="_blank" class="bg-[#165DFF] hover:bg-blue-700 text-white text-xs text-center py-1.5 rounded-lg font-medium transition-colors">Lihat Produk</a>
+              <button onclick='openShareModal(${JSON.stringify(p).replace(/'/g, "&apos;")})' class="border text-gray-600 hover:bg-gray-50 text-xs py-1 rounded-lg font-medium flex items-center justify-center gap-1"><i class="fa-solid fa-share-nodes"></i> Bagikan</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getMpBadgeClass(mp) {
+      switch(mp) {
+        case 'Shopee': return 'bg-orange-500 text-white';
+        case 'TikTok Shop': return 'bg-black text-white';
+        case 'Tokopedia': return 'bg-green-600 text-white';
+        case 'Lazada': return 'bg-blue-600 text-white';
+        case 'Blibli': return 'bg-cyan-600 text-white';
+        default: return 'bg-gray-600 text-white';
+      }
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        const isMatch = btn.innerText.startsWith(cat) || (cat === 'Semua' && btn.innerText === 'Semua');
+        btn.className = `cat-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${isMatch ? 'bg-[#165DFF] text-white shadow-sm' : 'bg-white border text-gray-600'}`;
+      });
+      renderProducts();
+    }
+
+    function setMarketplace(mp) {
+      currentMarketplace = mp;
+      document.querySelectorAll('.mp-btn').forEach(btn => {
+        const isMatch = btn.innerText === mp;
+        btn.className = `mp-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${isMatch ? 'bg-[#165DFF] text-white shadow-sm' : 'bg-white border text-gray-600'}`;
+      });
+      renderProducts();
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-newest').className = `py-2 px-4 border-b-2 font-medium text-sm ${tab === 'newest' ? 'border-[#165DFF] font-semibold text-[#165DFF]' : 'border-transparent text-gray-500'}`;
+      document.getElementById('tab-popular').className = `py-2 px-4 border-b-2 font-medium text-sm ${tab === 'popular' ? 'border-[#165DFF] font-semibold text-[#165DFF]' : 'border-transparent text-gray-500'}`;
+      renderProducts();
+    }
+
+    function openShareModal(p) {
+      activeShareProduct = p;
+      document.getElementById('share-info').innerHTML = `
+        <p><strong>Kode:</strong> ${p.code}</p>
+        <p><strong>Nama:</strong> ${p.name}</p>
+        <p class="truncate"><strong>Link:</strong> ${p.affiliate_url}</p>
+      `;
+      document.getElementById('share-modal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('share-modal').classList.add('hidden');
+    }
+
+    function getShareText() {
+      return `Rekomendasi Produk Pilihan:\n\n[${activeShareProduct.code}] ${activeShareProduct.name}\n\nCek produk selengkapnya di sini:\n${activeShareProduct.affiliate_url}`;
+    }
+
+    function shareWA() {
+      window.open(`https://wa.me/?text=${encodeURIComponent(getShareText())}`, '_blank');
+    }
+
+    function shareFB() {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activeShareProduct.affiliate_url)}`, '_blank');
+    }
+
+    function copyText() {
+      navigator.clipboard.writeText(getShareText());
+      alert('Teks produk berhasil disalin!');
+    }
+
+    async function checkAuth() {
+      const { data } = await db.auth.getSession();
+      const isLoggedIn = !!data.session;
+      document.getElementById('admin-login-view').classList.toggle('hidden', isLoggedIn);
+      document.getElementById('admin-dashboard-view').classList.toggle('hidden', !isLoggedIn);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) alert('Login Gagal: ' + error.message);
+      else checkAuth();
+    }
+
+    async function handleLogout() {
+      await db.auth.signOut();
+      checkAuth();
+    }
+
+    function renderAdminTable() {
+      const tbody = document.getElementById('admin-table-body');
+      tbody.innerHTML = allProducts.map(p => `
+        <tr>
+          <td class="p-3 font-mono font-bold">${p.code}</td>
+          <td class="p-3 font-medium max-w-[150px] truncate">${p.name}</td>
+          <td class="p-3 text-gray-500">${p.category} / ${p.marketplace}</td>
+          <td class="p-3">
+            ${p.is_newest ? '<span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded mr-1">Terbaru</span>' : ''}
+            ${p.is_popular ? '<span class="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded">Populer</span>' : ''}
+          </td>
+          <td class="p-3 text-right space-x-2">
+            <button onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&apos;")})' class="text-blue-600 font-semibold">Edit</button>
+            <button onclick="deleteProduct(${p.id})" class="text-red-600 font-semibold">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function editProduct(p) {
+      document.getElementById('form-title').innerText = 'Edit Produk';
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-code').value = p.code;
+      document.getElementById('prod-name').value = p.name;
+      document.getElementById('prod-category').value = p.category;
+      document.getElementById('prod-marketplace').value = p.marketplace;
+      document.getElementById('prod-image').value = p.image_url;
+      document.getElementById('prod-affiliate').value = p.affiliate_url;
+      document.getElementById('prod-popular').checked = p.is_popular;
+      document.getElementById('prod-newest').checked = p.is_newest;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      document.getElementById('form-title').innerText = 'Tambah Produk Baru';
+      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-code').value = '';
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-image').value = '';
+      document.getElementById('prod-affiliate').value = '';
+      document.getElementById('prod-popular').checked = false;
+      document.getElementById('prod-newest').checked = true;
+    }
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('prod-id').value;
+      const productData = {
+        code: document.getElementById('prod-code').value,
+        name: document.getElementById('prod-name').value,
+        category: document.getElementById('prod-category').value,
+        marketplace: document.getElementById('prod-marketplace').value,
+        image_url: document.getElementById('prod-image').value,
+        affiliate_url: document.getElementById('prod-affiliate').value,
+        is_popular: document.getElementById('prod-popular').checked,
+        is_newest: document.getElementById('prod-newest').checked,
+        updated_at: new Date()
+      };
+
+      let error;
+      if (id) {
+        ({ error } = await db.from('products').update(productData).eq('id', id));
+      } else {
+        ({ error } = await db.from('products').insert([productData]));
+      }
+
+      if (error) {
+        alert('Gagal menyimpan produk: ' + error.message);
+      } else {
+        alert('Produk berhasil disimpan!');
+        resetForm();
+        fetchProducts();
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (confirm('Yakin ingin menghapus produk ini?')) {
+        const { error } = await db.from('products').delete().eq('id', id);
+        if (error) alert('Gagal menghapus produk: ' + error.message);
+        else fetchProducts();
+      }
+    }
+  </script>
+</body>
+</html>
