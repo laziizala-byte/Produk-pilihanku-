@@ -16,6 +16,14 @@
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Mencegah video/gambar meluap dari kartu */
+    .media-container img, .media-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
 </head>
 <body class="bg-[#F8FAFC] text-[#1E293B] font-sans min-h-screen flex flex-col">
 
@@ -138,8 +146,10 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold mb-1">URL Gambar</label>
-            <input type="url" id="prod-image" required class="w-full border rounded-lg p-2 text-xs">
+            <label class="block text-xs font-semibold mb-1">Upload Foto / Video</label>
+            <input type="file" id="prod-media-file" accept="image/*,video/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-[#165DFF] hover:file:bg-blue-100">
+            <input type="hidden" id="prod-image"> <!-- Menyimpan URL file yang diupload -->
+            <p id="upload-status" class="text-[10px] mt-1 text-gray-500"></p>
           </div>
           <div>
             <label class="block text-xs font-semibold mb-1">URL Affiliate</label>
@@ -150,7 +160,9 @@
             <label class="text-xs font-semibold flex items-center gap-1.5"><input type="checkbox" id="prod-newest" checked> Produk Terbaru</label>
           </div>
           <div class="sm:col-span-2 flex gap-2">
-            <button type="submit" class="bg-[#165DFF] text-white px-4 py-2 rounded-lg text-xs font-medium shadow">Simpan Produk</button>
+            <button type="submit" id="submit-btn" class="bg-[#165DFF] text-white px-4 py-2 rounded-lg text-xs font-medium shadow flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Produk
+            </button>
             <button type="button" onclick="resetForm()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-medium">Batal</button>
           </div>
         </form>
@@ -161,6 +173,7 @@
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-gray-50 border-b">
               <tr>
+                <th class="p-3">Media</th>
                 <th class="p-3">Kode</th>
                 <th class="p-3">Nama</th>
                 <th class="p-3">Kat / MP</th>
@@ -193,7 +206,7 @@
   </footer>
 
   <script>
-    const SUPABASE_URL = 'https://jlvwnoigbxhckxmzclsq.supabase.co';
+    const SUPABASE_URL = 'https://xhckxmzclsq.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_cwQsnW91_QwJn0lXVVclFA_vCFG0UZq';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -202,6 +215,7 @@
     let currentMarketplace = 'Semua';
     let currentTab = 'newest';
     let activeShareProduct = null;
+    let oldImageUrl = ''; // Menyimpan URL gambar lama saat edit
 
     window.addEventListener('DOMContentLoaded', () => {
       if (window.location.hash === '#admin' || window.location.pathname === '/admin') {
@@ -227,6 +241,19 @@
       }
     }
 
+    function renderMedia(url, name, isVideo = false) {
+        if (!url) return '<div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Media</div>';
+        
+        // Cek ekstensi file sederhana jika isVideo tidak ditentukan
+        const isVideoFile = isVideo || url.match(/\.(mp4|webm|ogg|mov)$|supabase\.co\/storage\/v1\/object\/public\/product-images\/.*(\.mp4|\.webm|\.ogg|\.mov)/i);
+
+        if (isVideoFile) {
+            return `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`;
+        } else {
+            return `<img src="${url}" alt="${name}" class="w-full h-full object-cover">`;
+        }
+    }
+
     function renderProducts() {
       const search = document.getElementById('search-input').value.toLowerCase();
       const filtered = allProducts.filter(p => {
@@ -239,201 +266,4 @@
 
       const grid = document.getElementById('product-grid');
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 text-sm">Tidak ada produk ditemukan.</div>`;
-        return;
-      }
-
-      grid.innerHTML = filtered.map(p => `
-        <div class="bg-white rounded-xl shadow-sm border hover:-translate-y-1 transition-transform duration-200 overflow-hidden flex flex-col justify-between">
-          <div class="relative">
-            <img src="${p.image_url}" alt="${p.name}" class="w-full h-36 object-cover bg-gray-100">
-            <span class="absolute top-2 left-2 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">${p.code}</span>
-            <span class="absolute top-2 right-2 ${getMpBadgeClass(p.marketplace)} text-[10px] px-1.5 py-0.5 rounded font-bold">${p.marketplace}</span>
-          </div>
-          <div class="p-3 flex-grow flex flex-col justify-between">
-            <div>
-              <span class="text-[10px] text-gray-400 uppercase font-semibold">${p.category}</span>
-              <h3 class="text-xs font-bold line-clamp-2 mt-0.5 mb-2">${p.name}</h3>
-            </div>
-            <div class="grid grid-cols-1 gap-1.5 mt-2">
-              <a href="${p.affiliate_url}" target="_blank" class="bg-[#165DFF] hover:bg-blue-700 text-white text-xs text-center py-1.5 rounded-lg font-medium transition-colors">Lihat Produk</a>
-              <button onclick='openShareModal(${JSON.stringify(p).replace(/'/g, "&apos;")})' class="border text-gray-600 hover:bg-gray-50 text-xs py-1 rounded-lg font-medium flex items-center justify-center gap-1"><i class="fa-solid fa-share-nodes"></i> Bagikan</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function getMpBadgeClass(mp) {
-      switch(mp) {
-        case 'Shopee': return 'bg-orange-500 text-white';
-        case 'TikTok Shop': return 'bg-black text-white';
-        case 'Tokopedia': return 'bg-green-600 text-white';
-        case 'Lazada': return 'bg-blue-600 text-white';
-        case 'Blibli': return 'bg-cyan-600 text-white';
-        default: return 'bg-gray-600 text-white';
-      }
-    }
-
-    function setCategory(cat) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        const isMatch = btn.innerText.startsWith(cat) || (cat === 'Semua' && btn.innerText === 'Semua');
-        btn.className = `cat-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${isMatch ? 'bg-[#165DFF] text-white shadow-sm' : 'bg-white border text-gray-600'}`;
-      });
-      renderProducts();
-    }
-
-    function setMarketplace(mp) {
-      currentMarketplace = mp;
-      document.querySelectorAll('.mp-btn').forEach(btn => {
-        const isMatch = btn.innerText === mp;
-        btn.className = `mp-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${isMatch ? 'bg-[#165DFF] text-white shadow-sm' : 'bg-white border text-gray-600'}`;
-      });
-      renderProducts();
-    }
-
-    function setTab(tab) {
-      currentTab = tab;
-      document.getElementById('tab-newest').className = `py-2 px-4 border-b-2 font-medium text-sm ${tab === 'newest' ? 'border-[#165DFF] font-semibold text-[#165DFF]' : 'border-transparent text-gray-500'}`;
-      document.getElementById('tab-popular').className = `py-2 px-4 border-b-2 font-medium text-sm ${tab === 'popular' ? 'border-[#165DFF] font-semibold text-[#165DFF]' : 'border-transparent text-gray-500'}`;
-      renderProducts();
-    }
-
-    function openShareModal(p) {
-      activeShareProduct = p;
-      document.getElementById('share-info').innerHTML = `
-        <p><strong>Kode:</strong> ${p.code}</p>
-        <p><strong>Nama:</strong> ${p.name}</p>
-        <p class="truncate"><strong>Link:</strong> ${p.affiliate_url}</p>
-      `;
-      document.getElementById('share-modal').classList.remove('hidden');
-    }
-
-    function closeShareModal() {
-      document.getElementById('share-modal').classList.add('hidden');
-    }
-
-    function getShareText() {
-      return `Rekomendasi Produk Pilihan:\n\n[${activeShareProduct.code}] ${activeShareProduct.name}\n\nCek produk selengkapnya di sini:\n${activeShareProduct.affiliate_url}`;
-    }
-
-    function shareWA() {
-      window.open(`https://wa.me/?text=${encodeURIComponent(getShareText())}`, '_blank');
-    }
-
-    function shareFB() {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activeShareProduct.affiliate_url)}`, '_blank');
-    }
-
-    function copyText() {
-      navigator.clipboard.writeText(getShareText());
-      alert('Teks produk berhasil disalin!');
-    }
-
-    async function checkAuth() {
-      const { data } = await db.auth.getSession();
-      const isLoggedIn = !!data.session;
-      document.getElementById('admin-login-view').classList.toggle('hidden', isLoggedIn);
-      document.getElementById('admin-dashboard-view').classList.toggle('hidden', !isLoggedIn);
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('admin-email').value;
-      const password = document.getElementById('admin-password').value;
-      const { error } = await db.auth.signInWithPassword({ email, password });
-      if (error) alert('Login Gagal: ' + error.message);
-      else checkAuth();
-    }
-
-    async function handleLogout() {
-      await db.auth.signOut();
-      checkAuth();
-    }
-
-    function renderAdminTable() {
-      const tbody = document.getElementById('admin-table-body');
-      tbody.innerHTML = allProducts.map(p => `
-        <tr>
-          <td class="p-3 font-mono font-bold">${p.code}</td>
-          <td class="p-3 font-medium max-w-[150px] truncate">${p.name}</td>
-          <td class="p-3 text-gray-500">${p.category} / ${p.marketplace}</td>
-          <td class="p-3">
-            ${p.is_newest ? '<span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded mr-1">Terbaru</span>' : ''}
-            ${p.is_popular ? '<span class="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded">Populer</span>' : ''}
-          </td>
-          <td class="p-3 text-right space-x-2">
-            <button onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&apos;")})' class="text-blue-600 font-semibold">Edit</button>
-            <button onclick="deleteProduct(${p.id})" class="text-red-600 font-semibold">Hapus</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function editProduct(p) {
-      document.getElementById('form-title').innerText = 'Edit Produk';
-      document.getElementById('prod-id').value = p.id;
-      document.getElementById('prod-code').value = p.code;
-      document.getElementById('prod-name').value = p.name;
-      document.getElementById('prod-category').value = p.category;
-      document.getElementById('prod-marketplace').value = p.marketplace;
-      document.getElementById('prod-image').value = p.image_url;
-      document.getElementById('prod-affiliate').value = p.affiliate_url;
-      document.getElementById('prod-popular').checked = p.is_popular;
-      document.getElementById('prod-newest').checked = p.is_newest;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function resetForm() {
-      document.getElementById('form-title').innerText = 'Tambah Produk Baru';
-      document.getElementById('prod-id').value = '';
-      document.getElementById('prod-code').value = '';
-      document.getElementById('prod-name').value = '';
-      document.getElementById('prod-image').value = '';
-      document.getElementById('prod-affiliate').value = '';
-      document.getElementById('prod-popular').checked = false;
-      document.getElementById('prod-newest').checked = true;
-    }
-
-    async function handleSaveProduct(e) {
-      e.preventDefault();
-      const id = document.getElementById('prod-id').value;
-      const productData = {
-        code: document.getElementById('prod-code').value,
-        name: document.getElementById('prod-name').value,
-        category: document.getElementById('prod-category').value,
-        marketplace: document.getElementById('prod-marketplace').value,
-        image_url: document.getElementById('prod-image').value,
-        affiliate_url: document.getElementById('prod-affiliate').value,
-        is_popular: document.getElementById('prod-popular').checked,
-        is_newest: document.getElementById('prod-newest').checked,
-        updated_at: new Date()
-      };
-
-      let error;
-      if (id) {
-        ({ error } = await db.from('products').update(productData).eq('id', id));
-      } else {
-        ({ error } = await db.from('products').insert([productData]));
-      }
-
-      if (error) {
-        alert('Gagal menyimpan produk: ' + error.message);
-      } else {
-        alert('Produk berhasil disimpan!');
-        resetForm();
-        fetchProducts();
-      }
-    }
-
-    async function deleteProduct(id) {
-      if (confirm('Yakin ingin menghapus produk ini?')) {
-        const { error } = await db.from('products').delete().eq('id', id);
-        if (error) alert('Gagal menghapus produk: ' + error.message);
-        else fetchProducts();
-      }
-    }
-  </script>
-</body>
-</html>
+        grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 text-sm">Tidak ada produk ditemukan.Commit changes...
