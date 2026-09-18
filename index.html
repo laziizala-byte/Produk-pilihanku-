@@ -154,11 +154,11 @@
           <!-- UPLOAD MULTI FOTO & VIDEO -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div>
-              <label class="block text-xs font-semibold mb-1">Upload Banyak Foto (Bisa pilih > 1)</label>
+              <label class="block text-xs font-semibold mb-1">Upload Banyak Foto (Pilih > 1)</label>
               <input type="file" id="prod-images-files" accept="image/*" multiple class="w-full text-xs text-gray-500 border rounded-lg p-2">
             </div>
             <div>
-              <label class="block text-xs font-semibold mb-1">Upload Video Produk (Opsional)</label>
+              <label class="block text-xs font-semibold mb-1">Upload Video Produk (MP4, Max 20MB)</label>
               <input type="file" id="prod-video-file" accept="video/*" class="w-full text-xs text-gray-500 border rounded-lg p-2">
             </div>
           </div>
@@ -227,7 +227,6 @@
   </div>
 
   <script>
-    // SUPABASE CONFIG
     const SUPABASE_URL = 'https://jlvwnoigbxhckxmzclsq.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impsdndub2lnYnhoY2t4bXpjbHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjc1NzksImV4cCI6MjEwNTIwMzU3OX0.vF5aSQwHIvg3BslgKuzw7dMtjfXzzm10mF7qUIcUIso';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -237,7 +236,7 @@
     let selectedMarketplace = 'Semua';
     let selectedTab = 'newest';
     let activeShareItem = null;
-    let sliderIntervals = {};
+    let sliderTimers = {};
 
     window.addEventListener('load', () => {
       if (window.location.hash === '#admin') {
@@ -304,11 +303,10 @@
       }
     }
 
-    // RENDER PRODUK DENGAN SLIDER OTOMATIS & AUTOPLAY VIDEO
     function renderProducts() {
-      // Bersihkan timer slider sebelumnya
-      Object.values(sliderIntervals).forEach(clearInterval);
-      sliderIntervals = {};
+      // Hentikan timer slide yang sedang berjalan
+      Object.keys(sliderTimers).forEach(id => clearInterval(sliderTimers[id]));
+      sliderTimers = {};
 
       const grid = document.getElementById('product-grid');
       const searchVal = document.getElementById('search-input').value.toLowerCase();
@@ -328,23 +326,25 @@
 
       grid.innerHTML = filtered.map(item => {
         let mediaContent = '';
-        const photos = (item.media_urls && item.media_urls.length > 0) ? item.media_urls : [item.image_url || 'https://via.placeholder.com/300'];
+        const photos = (item.media_urls && item.media_urls.length > 0) 
+          ? item.media_urls 
+          : [item.image_url || 'https://via.placeholder.com/300'];
 
         if (item.video_url) {
-          // Tampilkan Video Autoplay jika ada
           mediaContent = `
-            <video src="${item.video_url}" autoplay loop muted playsinline class="w-full h-36 object-cover bg-black"></video>
+            <video src="${item.video_url}" autoplay loop muted playsinline controls class="w-full h-36 object-cover bg-black rounded-t-xl"></video>
           `;
         } else {
-          // Tampilkan Multi Gambar Slider
           mediaContent = `
-            <div class="relative w-full h-36 overflow-hidden">
+            <div class="relative w-full h-36 overflow-hidden rounded-t-xl">
               ${photos.map((img, idx) => `
-                <img id="img-${item.id}-${idx}" src="${img}" class="absolute inset-0 w-full h-36 object-cover transition-opacity duration-700 ${idx === 0 ? 'opacity-100' : 'opacity-0'}" alt="${item.name}">
+                <img id="img-${item.id}-${idx}" src="${img}" class="absolute inset-0 w-full h-36 object-cover transition-opacity duration-1000 ${idx === 0 ? 'opacity-100' : 'opacity-0'}" alt="${item.name}">
               `).join('')}
+              ${photos.length > 1 ? `<span class="absolute bottom-1 right-2 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-images"></i> ${photos.length}</span>` : ''}
             </div>
           `;
-    }
+        }
+
         return `
           <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
             <div class="relative">
@@ -366,26 +366,25 @@
         `;
       }).join('');
 
-      // Jalankan Timer Slide Otomatis
+      // JALANKAN SLIDE OTOMATIS
       filtered.forEach(item => {
         const photos = (item.media_urls && item.media_urls.length > 0) ? item.media_urls : [];
         if (!item.video_url && photos.length > 1) {
           let currentIdx = 0;
-          sliderIntervals[item.id] = setInterval(() => {
-            const currentImg = document.getElementById(`img-${item.id}-${currentIdx}`);
+          sliderTimers[item.id] = setInterval(() => {
+            const activeImg = document.getElementById(`img-${item.id}-${currentIdx}`);
             currentIdx = (currentIdx + 1) % photos.length;
             const nextImg = document.getElementById(`img-${item.id}-${currentIdx}`);
 
-            if (currentImg && nextImg) {
-              currentImg.classList.replace('opacity-100', 'opacity-0');
-              nextImg.classList.replace('opacity-0', 'opacity-100');
+            if (activeImg && nextImg) {
+              activeImg.style.opacity = '0';
+              nextImg.style.opacity = '1';
             }
-          }, 3000); // Berganti gambar tiap 3 detik
+          }, 2500); // Berganti foto tiap 2.5 detik
         }
       });
     }
 
-    // SIMPAN PRODUK (MULTI-FOTO & VIDEO)
     async function handleSaveProduct(e) {
       e.preventDefault();
       const btnSave = document.getElementById('btn-save-product');
@@ -408,31 +407,47 @@
         let media_urls = [];
         let video_url = '';
 
-        // 1. Upload Banyak Foto jika ada
+      // UPLOAD FOTO
         if (imagesFiles.length > 0) {
-          for (let file of imagesFiles) {
-            const fileName = `img_${Date.now()}_${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+          for (let i = 0; i < imagesFiles.length; i++) {
+            const file = imagesFiles[i];
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+            const fileName = `img_${Date.now()}_${i}_${cleanName}`;
+            
             const { error: upErr } = await supabaseClient.storage.from('product-images').upload(fileName, file);
             if (upErr) throw upErr;
+
             const { data } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
             media_urls.push(data.publicUrl);
           }
         }
 
-        // 2. Upload Video jika ada
+        // UPLOAD VIDEO
         if (videoFile) {
-          const fileName = `vid_${Date.now()}.${videoFile.name.split('.').pop()}`;
-          const { error: upErr } = await supabaseClient.storage.from('product-images').upload(fileName, videoFile);
+          const cleanVidName = videoFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+          const fileName = `vid_${Date.now()}_${cleanVidName}`;
+          
+          const { error: upErr } = await supabaseClient.storage.from('product-images').upload(fileName, videoFile, {
+            contentType: videoFile.type || 'video/mp4'
+          });
           if (upErr) throw upErr;
+
           const { data } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
           video_url = data.publicUrl;
         }
 
         const payload = {
-          code, name, category, marketplace, affiliate_url, is_popular, is_newest,
-          ...(media_urls.length > 0 && { media_urls, image_url: media_urls[0] }),
-          ...(video_url && { video_url })
+          code, name, category, marketplace, affiliate_url, is_popular, is_newest
         };
+
+        if (media_urls.length > 0) {
+          payload.media_urls = media_urls;
+          payload.image_url = media_urls[0];
+        }
+
+        if (video_url) {
+          payload.video_url = video_url;
+        }
 
         if (id) {
           const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
@@ -520,7 +535,7 @@
       document.getElementById('share-modal').classList.add('hidden');
       document.getElementById('share-modal').classList.remove('flex');
     }
-
+    
     function shareWA() {
       if (!activeShareItem) return;
       const text = `Rekomendasi Produk: ${activeShareItem.name} (${activeShareItem.code})\nCek selengkapnya: ${activeShareItem.affiliate_url}`;
