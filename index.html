@@ -151,10 +151,16 @@
             </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold mb-1">Upload Foto Produk</label>
-            <input type="file" id="prod-image-file" accept="image/*" class="w-full text-xs text-gray-500 border rounded-lg p-2">
-            <input type="hidden" id="prod-image-url">
+          <!-- UPLOAD MULTI FOTO & VIDEO -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div>
+              <label class="block text-xs font-semibold mb-1">Upload Banyak Foto (Bisa pilih > 1)</label>
+              <input type="file" id="prod-images-files" accept="image/*" multiple class="w-full text-xs text-gray-500 border rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">Upload Video Produk (Opsional)</label>
+              <input type="file" id="prod-video-file" accept="video/*" class="w-full text-xs text-gray-500 border rounded-lg p-2">
+            </div>
           </div>
 
           <div>
@@ -181,7 +187,7 @@
         <table class="w-full text-left text-xs">
           <thead>
             <tr class="border-b text-gray-500">
-              <th class="py-2">Gambar</th>
+              <th class="py-2">Media</th>
               <th class="py-2">Kode</th>
               <th class="py-2">Nama</th>
               <th class="py-2">Marketplace</th>
@@ -231,8 +237,8 @@
     let selectedMarketplace = 'Semua';
     let selectedTab = 'newest';
     let activeShareItem = null;
+    let sliderIntervals = {};
 
-    // DETEKSI UTAMA HALAMAN / ADMIN
     window.addEventListener('load', () => {
       if (window.location.hash === '#admin') {
         showPage('admin');
@@ -262,7 +268,6 @@
       }
     }
 
-    // AUTHENTICATION
     async function checkAuthStatus() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
@@ -281,11 +286,8 @@
       const password = document.getElementById('admin-password').value;
 
       const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert('Login gagal: ' + error.message);
-      } else {
-        checkAuthStatus();
-      }
+      if (error) alert('Login gagal: ' + error.message);
+      else checkAuthStatus();
     }
 
     async function handleLogout() {
@@ -293,7 +295,6 @@
       checkAuthStatus();
     }
 
-    // FETCH DATA PRODUK
     async function fetchProducts() {
       const { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: false });
       if (!error && data) {
@@ -303,8 +304,12 @@
       }
     }
 
-    // RENDER PRODUK PUBLIK
+    // RENDER PRODUK DENGAN SLIDER OTOMATIS & AUTOPLAY VIDEO
     function renderProducts() {
+      // Bersihkan timer slider sebelumnya
+      Object.values(sliderIntervals).forEach(clearInterval);
+      sliderIntervals = {};
+
       const grid = document.getElementById('product-grid');
       const searchVal = document.getElementById('search-input').value.toLowerCase();
 
@@ -321,64 +326,66 @@
         return;
       }
 
-      grid.innerHTML = filtered.map(item => `
-        <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
-          <div class="relative">
-            <img src="${item.image_url || 'https://via.placeholder.com/300'}" class="w-full h-36 object-cover bg-gray-100" alt="${item.name}">
-            <span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">${item.code}</span>
-            <span class="absolute top-2 right-2 bg-[#165DFF] text-white text-[10px] font-semibold px-2 py-0.5 rounded">${item.marketplace}</span>
-          </div>
-          <div class="p-3 flex-grow flex flex-col justify-between space-y-2">
-            <div>
-              <p class="text-[10px] text-gray-400 font-medium">${item.category}</p>
-              <h3 class="text-xs font-semibold text-gray-800 line-clamp-2">${item.name}</h3>
+      grid.innerHTML = filtered.map(item => {
+        let mediaContent = '';
+        const photos = (item.media_urls && item.media_urls.length > 0) ? item.media_urls : [item.image_url || 'https://via.placeholder.com/300'];
+
+        if (item.video_url) {
+          // Tampilkan Video Autoplay jika ada
+          mediaContent = `
+            <video src="${item.video_url}" autoplay loop muted playsinline class="w-full h-36 object-cover bg-black"></video>
+          `;
+        } else {
+          // Tampilkan Multi Gambar Slider
+          mediaContent = `
+            <div class="relative w-full h-36 overflow-hidden">
+              ${photos.map((img, idx) => `
+                <img id="img-${item.id}-${idx}" src="${img}" class="absolute inset-0 w-full h-36 object-cover transition-opacity duration-700 ${idx === 0 ? 'opacity-100' : 'opacity-0'}" alt="${item.name}">
+              `).join('')}
             </div>
-            <div class="space-y-1 pt-2">
-              <a href="${item.affiliate_url}" target="_blank" class="block w-full bg-[#165DFF] hover:bg-blue-700 text-white text-center text-xs py-1.5 rounded-lg font-medium transition">Lihat Produk</a>
-              <button onclick="openShareModal(${item.id})" class="block w-full border border-gray-200 text-gray-600 hover:bg-gray-50 text-center text-xs py-1 rounded-lg font-medium">Bagikan</button>
+          `;
+    }
+        return `
+          <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
+            <div class="relative">
+              ${mediaContent}
+              <span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">${item.code}</span>
+              <span class="absolute top-2 right-2 bg-[#165DFF] text-white text-[10px] font-semibold px-2 py-0.5 rounded">${item.marketplace}</span>
+            </div>
+            <div class="p-3 flex-grow flex flex-col justify-between space-y-2">
+              <div>
+                <p class="text-[10px] text-gray-400 font-medium">${item.category}</p>
+                <h3 class="text-xs font-semibold text-gray-800 line-clamp-2">${item.name}</h3>
+              </div>
+              <div class="space-y-1 pt-2">
+                <a href="${item.affiliate_url}" target="_blank" class="block w-full bg-[#165DFF] hover:bg-blue-700 text-white text-center text-xs py-1.5 rounded-lg font-medium transition">Lihat Produk</a>
+                <button onclick="openShareModal(${item.id})" class="block w-full border border-gray-200 text-gray-600 hover:bg-gray-50 text-center text-xs py-1 rounded-lg font-medium">Bagikan</button>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
-    }
+        `;
+      }).join('');
 
-    // FILTER HANDLERS
-    function setCategory(cat) {
-      selectedCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.className = btn.innerText.includes(cat) || (cat === 'Semua' && btn.innerText === 'Semua')
-          ? 'cat-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white whitespace-nowrap'
-          : 'cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap';
+      // Jalankan Timer Slide Otomatis
+      filtered.forEach(item => {
+        const photos = (item.media_urls && item.media_urls.length > 0) ? item.media_urls : [];
+        if (!item.video_url && photos.length > 1) {
+          let currentIdx = 0;
+          sliderIntervals[item.id] = setInterval(() => {
+            const currentImg = document.getElementById(`img-${item.id}-${currentIdx}`);
+            currentIdx = (currentIdx + 1) % photos.length;
+            const nextImg = document.getElementById(`img-${item.id}-${currentIdx}`);
+
+            if (currentImg && nextImg) {
+              currentImg.classList.replace('opacity-100', 'opacity-0');
+              nextImg.classList.replace('opacity-0', 'opacity-100');
+            }
+          }, 3000); // Berganti gambar tiap 3 detik
+        }
       });
-      renderProducts();
     }
 
-    function setMarketplace(mp) {
-      selectedMarketplace = mp;
-      document.querySelectorAll('.mp-btn').forEach(btn => {
-        btn.className = btn.innerText === mp
-          ? 'mp-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white whitespace-nowrap'
-          : 'mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap';
-      });
-      renderProducts();
-    }
-
-    function setTab(tab) {
-      selectedTab = tab;
-      const tabNewest = document.getElementById('tab-newest');
-      const tabPopular = document.getElementById('tab-popular');
-
-      if (tab === 'newest') {
-        tabNewest.className = 'py-2 px-4 border-b-2 border-[#165DFF] font-semibold text-[#165DFF] text-sm';
-        tabPopular.className = 'py-2 px-4 border-b-2 border-transparent font-medium text-gray-500 text-sm';
-      } else {
-        tabPopular.className = 'py-2 px-4 border-b-2 border-[#165DFF] font-semibold text-[#165DFF] text-sm';
-        tabNewest.className = 'py-2 px-4 border-b-2 border-transparent font-medium text-gray-500 text-sm';
-      }
-      renderProducts();
-    }
-
-    // SIMPAN / EDIT PRODUK ADMIN
+    // SIMPAN PRODUK (MULTI-FOTO & VIDEO)
     async function handleSaveProduct(e) {
       e.preventDefault();
       const btnSave = document.getElementById('btn-save-product');
@@ -394,49 +401,52 @@
         const affiliate_url = document.getElementById('prod-url').value;
         const is_popular = document.getElementById('prod-popular').checked;
         const is_newest = document.getElementById('prod-newest').checked;
-        const fileInput = document.getElementById('prod-image-file');
 
-        let image_url = document.getElementById('prod-image-url').value;
+        const imagesFiles = document.getElementById('prod-images-files').files;
+        const videoFile = document.getElementById('prod-video-file').files[0];
 
-        // Upload Gambar jika ada file baru yang dipilih
-        if (fileInput && fileInput.files.length > 0) {
-          const file = fileInput.files[0];
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}.${fileExt}`;
+        let media_urls = [];
+        let video_url = '';
 
-          const { data: uploadData, error: uploadError } = await supabaseClient.storage
-            .from('product-images')
-            .upload(fileName, file);
-
-          if (uploadError) throw uploadError;
-
-          const { data: urlData } = supabaseClient.storage
-            .from('product-images')
-            .getPublicUrl(fileName);
-
-          image_url = urlData.publicUrl;
+        // 1. Upload Banyak Foto jika ada
+        if (imagesFiles.length > 0) {
+          for (let file of imagesFiles) {
+            const fileName = `img_${Date.now()}_${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+            const { error: upErr } = await supabaseClient.storage.from('product-images').upload(fileName, file);
+            if (upErr) throw upErr;
+            const { data } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
+            media_urls.push(data.publicUrl);
+          }
         }
 
-        const payload = { code, name, category, marketplace, affiliate_url, image_url, is_popular, is_newest };
+        // 2. Upload Video jika ada
+        if (videoFile) {
+          const fileName = `vid_${Date.now()}.${videoFile.name.split('.').pop()}`;
+          const { error: upErr } = await supabaseClient.storage.from('product-images').upload(fileName, videoFile);
+          if (upErr) throw upErr;
+          const { data } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
+          video_url = data.publicUrl;
+        }
+
+        const payload = {
+          code, name, category, marketplace, affiliate_url, is_popular, is_newest,
+          ...(media_urls.length > 0 && { media_urls, image_url: media_urls[0] }),
+          ...(video_url && { video_url })
+        };
 
         if (id) {
-          // Edit Produk
           const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
           if (error) throw error;
           alert('✅ Berhasil memperbarui produk!');
         } else {
-          // Tambah Produk Baru
           const { error } = await supabaseClient.from('products').insert([payload]);
           if (error) throw error;
           alert('✅ Berhasil menyimpan produk!');
         }
 
-        // Reset Formulir Otomatis
         document.getElementById('product-form').reset();
         document.getElementById('prod-id').value = '';
-        document.getElementById('prod-image-url').value = '';
         document.getElementById('form-title').innerText = 'Tambah Produk Baru';
-        
         fetchProducts();
 
       } catch (err) {
@@ -447,62 +457,58 @@
       }
     }
 
-    // RENDER TABEL ADMIN
     function renderAdminTable() {
       const tbody = document.getElementById('admin-table-body');
       if (!tbody) return;
 
-      tbody.innerHTML = allProducts.map(item => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="py-2"><img src="${item.image_url || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-cover rounded"></td>
-          <td class="py-2 font-bold">${item.code}</td>
-          <td class="py-2 max-w-[120px] truncate">${item.name}</td>
-          <td class="py-2">${item.marketplace}</td>
-          <td class="py-2 text-center space-x-1">
-            <button onclick="editProduct(${item.id})" class="bg-amber-500 text-white px-2 py-1 rounded text-[10px]">Edit</button>
-            <button onclick="deleteProduct(${item.id})" class="bg-red-500 text-white px-2 py-1 rounded text-[10px]">Hapus</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = allProducts.map(item => {
+        const thumb = item.video_url
+          ? `<video src="${item.video_url}" class="w-10 h-10 object-cover rounded bg-black"></video>`
+          : `<img src="${(item.media_urls && item.media_urls[0]) || item.image_url || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-cover rounded">`;
+
+        return `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="py-2">${thumb}</td>
+            <td class="py-2 font-bold">${item.code}</td>
+            <td class="py-2 max-w-[120px] truncate">${item.name}</td>
+            <td class="py-2">${item.marketplace}</td>
+            <td class="py-2 text-center space-x-1">
+              <button onclick="deleteProduct(${item.id})" class="bg-red-500 text-white px-2 py-1 rounded text-[10px]">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    // EDIT PRODUK
-    function editProduct(id) {
-      const item = allProducts.find(p => p.id === id);
-      if (!item) return;
-
-      document.getElementById('form-title').innerText = 'Edit Produk';
-      document.getElementById('prod-id').value = item.id;
-      document.getElementById('prod-code').value = item.code;
-      document.getElementById('prod-name').value = item.name;
-      document.getElementById('prod-category').value = item.category;
-      document.getElementById('prod-marketplace').value = item.marketplace;
-      document.getElementById('prod-url').value = item.affiliate_url;
-      document.getElementById('prod-image-url').value = item.image_url || '';
-      document.getElementById('prod-popular').checked = item.is_popular;
-      document.getElementById('prod-newest').checked = item.is_newest;
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // HAPUS PRODUK
     async function deleteProduct(id) {
       if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
         const { error } = await supabaseClient.from('products').delete().eq('id', id);
-        if (error) {
-          alert('❌ Gagal menghapus: ' + error.message);
-        } else {
+        if (error) alert('❌ Gagal menghapus: ' + error.message);
+        else {
           alert('✅ Produk berhasil dihapus!');
           fetchProducts();
         }
       }
     }
 
-    // MODAL & SHARE FUNCTIONS
+    function setCategory(cat) {
+      selectedCategory = cat;
+      renderProducts();
+    }
+
+    function setMarketplace(mp) {
+      selectedMarketplace = mp;
+      renderProducts();
+    }
+
+    function setTab(tab) {
+      selectedTab = tab;
+      renderProducts();
+    }
+
     function openShareModal(id) {
       activeShareItem = allProducts.find(p => p.id === id);
       if (!activeShareItem) return;
-
       document.getElementById('modal-code').innerText = activeShareItem.code;
       document.getElementById('modal-name').innerText = activeShareItem.name;
       document.getElementById('modal-link').innerText = activeShareItem.affiliate_url;
@@ -517,7 +523,7 @@
 
     function shareWA() {
       if (!activeShareItem) return;
-      const text = `Rekomendasi Produk: ${activeShareItem.name} (${activeShareItem.code})\nCek selengkapnya di sini: ${activeShareItem.affiliate_url}`;
+      const text = `Rekomendasi Produk: ${activeShareItem.name} (${activeShareItem.code})\nCek selengkapnya: ${activeShareItem.affiliate_url}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
