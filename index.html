@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Mencegah video/gambar meluap dari kartu */
     .media-container img, .media-container video {
       width: 100%;
       height: 100%;
@@ -70,11 +69,11 @@
       <label class="block text-xs font-semibold text-gray-500 mb-1">MARKETPLACE</label>
       <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="mp-filters">
         <button onclick="setMarketplace('Semua')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white shadow-sm whitespace-nowrap">Semua</button>
-        <button onclick="setMarketplace('Shopee')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-orange-600 border-orange-200 whitespace-nowrap">Shopee</button>
-        <button onclick="setMarketplace('TikTok Shop')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-black border-gray-300 whitespace-nowrap">TikTok Shop</button>
-        <button onclick="setMarketplace('Tokopedia')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-green-600 border-green-200 whitespace-nowrap">Tokopedia</button>
-        <button onclick="setMarketplace('Lazada')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-blue-600 border-blue-200 whitespace-nowrap">Lazada</button>
-        <button onclick="setMarketplace('Blibli')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-cyan-600 border-cyan-200 whitespace-nowrap">Blibli</button>
+        <button onclick="setMarketplace('Shopee')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-orange-600 whitespace-nowrap">Shopee</button>
+        <button onclick="setMarketplace('TikTok Shop')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-black whitespace-nowrap">TikTok Shop</button>
+        <button onclick="setMarketplace('Tokopedia')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-green-600 whitespace-nowrap">Tokopedia</button>
+        <button onclick="setMarketplace('Lazada')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-blue-600 whitespace-nowrap">Lazada</button>
+        <button onclick="setMarketplace('Blibli')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-cyan-600 whitespace-nowrap">Blibli</button>
       </div>
     </div>
 
@@ -147,8 +146,8 @@
           </div>
           <div>
             <label class="block text-xs font-semibold mb-1">Upload Foto / Video</label>
-            <input type="file" id="prod-media-file" accept="image/*,video/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-[#165DFF] hover:file:bg-blue-100">
-            <input type="hidden" id="prod-image"> <!-- Menyimpan URL file yang diupload -->
+            <input type="file" id="prod-media-file" accept="image/*,video/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-[#165DFF]">
+            <input type="hidden" id="prod-image">
             <p id="upload-status" class="text-[10px] mt-1 text-gray-500"></p>
           </div>
           <div>
@@ -161,7 +160,7 @@
           </div>
           <div class="sm:col-span-2 flex gap-2">
             <button type="submit" id="submit-btn" class="bg-[#165DFF] text-white px-4 py-2 rounded-lg text-xs font-medium shadow flex items-center gap-2">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Produk
+                Simpan Produk
             </button>
             <button type="button" onclick="resetForm()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-medium">Batal</button>
           </div>
@@ -215,21 +214,53 @@
     let currentMarketplace = 'Semua';
     let currentTab = 'newest';
     let activeShareProduct = null;
-    let oldImageUrl = ''; // Menyimpan URL gambar lama saat edit
 
     window.addEventListener('DOMContentLoaded', () => {
-      if (window.location.hash === '#admin' || window.location.pathname === '/admin') {
-        showPage('admin');
-      } else {
-        showPage('public');
-      }
+      checkHash();
+      window.addEventListener('hashchange', checkHash);
       checkAuth();
       fetchProducts();
     });
 
+    function checkHash() {
+      if (window.location.hash === '#admin') {
+        showPage('admin');
+      } else {
+        showPage('public');
+      }
+    }
+
     function showPage(page) {
       document.getElementById('page-public').classList.toggle('hidden', page !== 'public');
       document.getElementById('page-admin').classList.toggle('hidden', page !== 'admin');
+    }
+
+    async function checkAuth() {
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        document.getElementById('admin-login-view').classList.add('hidden');
+        document.getElementById('admin-dashboard-view').classList.remove('hidden');
+      } else {
+        document.getElementById('admin-login-view').classList.remove('hidden');
+        document.getElementById('admin-dashboard-view').classList.add('hidden');
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert('Login gagal: ' + error.message);
+      } else {
+        checkAuth();
+      }
+    }
+
+    async function handleLogout() {
+      await db.auth.signOut();
+      checkAuth();
     }
 
     async function fetchProducts() {
@@ -241,17 +272,13 @@
       }
     }
 
-    function renderMedia(url, name, isVideo = false) {
-        if (!url) return '<div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Media</div>';
-        
-        // Cek ekstensi file sederhana jika isVideo tidak ditentukan
-        const isVideoFile = isVideo || url.match(/\.(mp4|webm|ogg|mov)$|supabase\.co\/storage\/v1\/object\/public\/product-images\/.*(\.mp4|\.webm|\.ogg|\.mov)/i);
-
-        if (isVideoFile) {
-            return `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`;
-        } else {
-            return `<img src="${url}" alt="${name}" class="w-full h-full object-cover">`;
-        }
+    function renderMedia(url, name) {
+      if (!url) return `<div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Media</div>`;
+      const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('/product-images/') && url.includes('.mp4');
+      if (isVideo) {
+        return `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`;
+      }
+      return `<img src="${url}" alt="${name}" class="w-full h-full object-cover">`;
     }
 
     function renderProducts() {
@@ -266,4 +293,170 @@
 
       const grid = document.getElementById('product-grid');
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 text-sm">Tidak ada produk ditemukan.Commit changes...
+        grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 text-sm">Tidak ada produk ditemukan.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition duration-200 flex flex-col">
+          <div class="relative aspect-square bg-gray-100 media-container">
+            ${renderMedia(p.image_url, p.name)}
+            <span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">${p.code}</span>
+            <span class="absolute top-2 right-2 bg-[#165DFF] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">${p.marketplace}</span>
+          </div>
+          <div class="p-3 flex flex-col flex-grow">
+            <span class="text-[10px] text-gray-400 font-medium mb-1">${p.category}</span>
+            <h3 class="font-semibold text-xs text-gray-800 line-clamp-2 mb-3">${p.name}</h3>
+            <div class="mt-auto flex flex-col gap-1.5">
+              <a href="${p.affiliate_url}" target="_blank" class="w-full bg-[#165DFF] text-white text-center py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 transition">Lihat Produk</a>
+              <button onclick="openShareModal('${p.code}')" class="w-full border text-gray-600 py-1 rounded-lg text-xs font-medium hover:bg-gray-50 flex items-center justify-center gap-1">
+                <i class="fa-solid fa-share-nodes text-[10px]"></i> Bagikan
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAdminTable() {
+      const tbody = document.getElementById('admin-table-body');
+      tbody.innerHTML = allProducts.map(p => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-3"><div class="w-10 h-10 rounded overflow-hidden media-container bg-gray-100">${renderMedia(p.image_url, p.name)}</div></td>
+          <td class="p-3 font-bold">${p.code}</td>
+          <td class="p-3 max-w-[150px] truncate">${p.name}</td>
+          <td class="p-3">${p.category} / ${p.marketplace}</td>
+          <td class="p-3">
+            ${p.is_newest ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded mr-1">Terbaru</span>' : ''}
+            ${p.is_popular ? '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded">Populer</span>' : ''}
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 mr-2 font-medium">Edit</button>
+            <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      const statusEl = document.getElementById('upload-status');
+      const submitBtn = document.getElementById('submit-btn');
+      
+      const fileInput = document.getElementById('prod-media-file');
+      let imageUrl = document.getElementById('prod-image').value;
+        
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Simpan Produk';
+
+      if (res.error) {
+        alert('Gagal menyimpan produk: ' + res.error.message);
+      } else {
+        resetForm();
+        fetchProducts();
+      }
+    }
+
+    function editProduct(id) {
+      const p = allProducts.find(x => x.id == id);
+      if (!p) return;
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-code').value = p.code;
+      document.getElementById('prod-name').value = p.name;
+      document.getElementById('prod-category').value = p.category;
+      document.getElementById('prod-marketplace').value = p.marketplace;
+      document.getElementById('prod-image').value = p.image_url || '';
+      document.getElementById('prod-affiliate').value = p.affiliate_url;
+      document.getElementById('prod-popular').checked = p.is_popular;
+      document.getElementById('prod-newest').checked = p.is_newest;
+      document.getElementById('form-title').innerText = 'Edit Produk';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteProduct(id) {
+      if (confirm('Yakin ingin menghapus produk ini?')) {
+        const { error } = await db.from('products').delete().eq('id', id);
+        if (error) alert('Gagal menghapus: ' + error.message);
+        else fetchProducts();
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-code').value = '';
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-image').value = '';
+      document.getElementById('prod-affiliate').value = '';
+      document.getElementById('prod-media-file').value = '';
+      document.getElementById('prod-popular').checked = false;
+      document.getElementById('prod-newest').checked = true;
+      document.getElementById('upload-status').innerText = '';
+      document.getElementById('form-title').innerText = 'Tambah Produk Baru';
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.className = btn.innerText.includes(cat) || (cat === 'Semua' && btn.innerText === 'Semua')
+          ? 'cat-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white shadow-sm whitespace-nowrap'
+          : 'cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap';
+      });
+      renderProducts();
+    }
+
+    function setMarketplace(mp) {
+      currentMarketplace = mp;
+      document.querySelectorAll('.mp-btn').forEach(btn => {
+        btn.className = btn.innerText === mp
+          ? 'mp-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white shadow-sm whitespace-nowrap'
+          : 'mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white border text-gray-600 whitespace-nowrap';
+      });
+      renderProducts();
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-newest').className = tab === 'newest'
+        ? 'py-2 px-4 border-b-2 border-[#165DFF] font-semibold text-sm text-[#165DFF]'
+        : 'py-2 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700';
+      document.getElementById('tab-popular').className = tab === 'popular'
+        ? 'py-2 px-4 border-b-2 border-[#165DFF] font-semibold text-sm text-[#165DFF]'
+        : 'py-2 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700';
+      renderProducts();
+    }
+
+    function openShareModal(code) {
+      activeShareProduct = allProducts.find(p => p.code === code);
+      if (!activeShareProduct) return;
+      document.getElementById('share-info').innerHTML = `
+        <p class="font-bold text-gray-800">${activeShareProduct.code} - ${activeShareProduct.name}</p>
+        <p class="text-blue-600 truncate">${activeShareProduct.affiliate_url}</p>
+      `;
+      document.getElementById('share-modal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('share-modal').classList.add('hidden');
+    }
+
+    function shareWA() {
+      if (!activeShareProduct) return;
+      const text = encodeURIComponent(`Cek ${activeShareProduct.name} di sini: ${activeShareProduct.affiliate_url}`);
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+
+    function shareFB() {
+      if (!activeShareProduct) return;
+      const url = encodeURIComponent(activeShareProduct.affiliate_url);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    }
+
+    function copyText() {
+      if (!activeShareProduct) return;
+      const text = `${activeShareProduct.code} - ${activeShareProduct.name}\n${activeShareProduct.affiliate_url}`;
+      navigator.clipboard.writeText(text);
+      alert('Teks berhasil disalin!');
+    }
+  </script>
+</body>
+</html>
