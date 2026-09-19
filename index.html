@@ -70,8 +70,6 @@
         <button onclick="setMarketplace('Shopee')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Shopee</button>
         <button onclick="setMarketplace('TikTok Shop')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">TikTok Shop</button>
         <button onclick="setMarketplace('Tokopedia')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Tokopedia</button>
-        <button onclick="setMarketplace('Lazada')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Lazada</button>
-        <button onclick="setMarketplace('Blibli')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Blibli</button>
       </div>
     </div>
 
@@ -380,7 +378,7 @@
               activeImg.style.opacity = '0';
               nextImg.style.opacity = '1';
             }
-          }, 2500); // Berganti foto tiap 2.5 detik
+          }, 2500); // Berganti foto tiap 2 detik
         }
       });
     }
@@ -517,9 +515,19 @@
       renderProducts();
     }
 
-    function setTab(tab) {
-      selectedTab = tab;
-      renderProducts();
+    function setMarketplace(mp) {
+  selectedMarketplace = mp;
+  const body = document.body;
+
+  if (mp === 'Shopee') {
+    body.style.backgroundColor = '#FFF5F0'; // Latar oranye muda lembut khas Shopee
+  } else if (mp === 'TikTok Shop') {
+    body.style.backgroundColor = '#121212'; // Latar gelap eksklusif khas TikTok
+  } else {
+    body.style.backgroundColor = '#F8FAFC'; // Warna latar default
+  }
+
+  renderProducts();
     }
 
     function openShareModal(id) {
