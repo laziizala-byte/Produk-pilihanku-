@@ -199,9 +199,9 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://xhckxmzclsq.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_cwQsnW91_QwJn0lXVVclFA_vCFG0UZq';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = 'https://jlvwnoigbxhckxmzclsq.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impsdndub2lnYnhoY2t4bXpjbHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjc1NzksImV4cCI6MjEwNTIwMzU3OX0.vF5aSQwHIvg3BslgKuzw7dMtjfXzzm10mF7qUIcUIso';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let productsData = [];
     let selectedCategory = 'Semua';
@@ -231,7 +231,7 @@
     }
 
     async function fetchProducts() {
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
       if (data) {
         productsData = data;
         renderProducts();
@@ -331,22 +331,22 @@
     }
 
     async function checkAdminAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       document.getElementById('admin-login-card').classList.toggle('hidden', !!session);
       document.getElementById('admin-panel').classList.toggle('hidden', !session);
     }
 
-   async function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) alert('Login gagal: ' + error.message);
       else checkAdminAuth();
     }
 
     async function handleLogout() {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       checkAdminAuth();
     }
 
@@ -410,9 +410,9 @@
         is_newest: document.getElementById('prod-newest').checked,
       };
       if (id) {
-        await supabase.from('products').update(payload).eq('id', id);
+        await supabaseClient.from('products').update(payload).eq('id', id);
       } else {
-        await supabase.from('products').insert([payload]);
+        await supabaseClient.from('products').insert([payload]);
       }
       resetForm();
       fetchProducts();
@@ -420,7 +420,7 @@
 
     async function deleteProduct(id) {
       if (confirm('Yakin ingin menghapus produk ini?')) {
-        await supabase.from('products').delete().eq('id', id);
+        await supabaseClient.from('products').delete().eq('id', id);
         fetchProducts();
       }
     }
