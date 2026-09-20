@@ -48,17 +48,17 @@
     <div class="mb-4">
       <label class="block text-xs font-semibold text-gray-500 mb-1">KATEGORI</label>
       <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-filters">
-        <button onclick="setCategory('Semua')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white whitespace-nowrap">Semua</button>
-        <button onclick="setCategory('DAP')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">DAP — Alat Dapur</button>
-        <button onclick="setCategory('ELE')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">ELE — Elektronik</button>
-        <button onclick="setCategory('FAS')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">FAS — Fashion</button>
-        <button onclick="setCategory('KEC')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">KEC — Kecantikan</button>
-        <button onclick="setCategory('RTG')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">RTG — Rumah Tangga</button>
-        <button onclick="setCategory('KES')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">KES — Kesehatan</button>
-        <button onclick="setCategory('GAD')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">GAD — Gadget & Aksesoris</button>
-        <button onclick="setCategory('OTO')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">OTO — Otomotif</button>
-        <button onclick="setCategory('BAY')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">BAY — Perlengkapan Bayi</button>
-        <button onclick="setCategory('VIR')" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">VIR — Produk Unik & Viral</button>
+        <button onclick="setCategory('Semua', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white whitespace-nowrap">Semua</button>
+        <button onclick="setCategory('DAP', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">DAP — Alat Dapur</button>
+        <button onclick="setCategory('ELE', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">ELE — Elektronik</button>
+        <button onclick="setCategory('FAS', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">FAS — Fashion</button>
+        <button onclick="setCategory('KEC', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">KEC — Kecantikan</button>
+        <button onclick="setCategory('RTG', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">RTG — Rumah Tangga</button>
+        <button onclick="setCategory('KES', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">KES — Kesehatan</button>
+        <button onclick="setCategory('GAD', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">GAD — Gadget & Aksesoris</button>
+        <button onclick="setCategory('OTO', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">OTO — Otomotif</button>
+        <button onclick="setCategory('BAY', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">BAY — Perlengkapan Bayi</button>
+        <button onclick="setCategory('VIR', this)" class="cat-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">VIR — Produk Unik & Viral</button>
       </div>
     </div>
 
@@ -66,10 +66,10 @@
     <div class="mb-6">
       <label class="block text-xs font-semibold text-gray-500 mb-1">MARKETPLACE</label>
       <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="mp-filters">
-        <button onclick="setMarketplace('Semua')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white whitespace-nowrap">Semua</button>
-        <button onclick="setMarketplace('Shopee')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Shopee</button>
-        <button onclick="setMarketplace('TikTok Shop')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">TikTok Shop</button>
-        <button onclick="setMarketplace('Tokopedia')" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Tokopedia</button>
+        <button onclick="setMarketplace('Semua', this)" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-[#165DFF] text-white whitespace-nowrap">Semua</button>
+        <button onclick="setMarketplace('Shopee', this)" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Shopee</button>
+        <button onclick="setMarketplace('TikTok Shop', this)" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">TikTok Shop</button>
+        <button onclick="setMarketplace('Tokopedia', this)" class="mp-btn px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 whitespace-nowrap">Tokopedia</button>
       </div>
     </div>
 
@@ -505,9 +505,17 @@
       }
     }
 
-    function setCategory(cat) {
-      selectedCategory = cat;
-      renderProducts();
+    function setCategory(cat, element) {
+  selectedCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.classList.remove('bg-[#165DFF]', 'text-white');
+    btn.classList.add('bg-white', 'text-slate-700');
+  });
+  if (element) {
+    element.classList.remove('bg-white', 'text-slate-700');
+    element.classList.add('bg-[#165DFF]', 'text-white');
+  }
+  renderProducts();
     }
 
     function setMarketplace(mp) {
@@ -515,16 +523,27 @@
       renderProducts();
     }
 
-    function setMarketplace(mp) {
+    function setMarketplace(mp, element) {
   selectedMarketplace = mp;
   const body = document.body;
 
+  document.querySelectorAll('.mp-btn').forEach(btn => {
+    btn.classList.remove('bg-[#165DFF]', 'bg-orange-500', 'bg-black', 'bg-emerald-600', 'text-white');
+    btn.classList.add('bg-white', 'text-slate-700');
+  });
+
   if (mp === 'Shopee') {
-    body.style.backgroundColor = '#FFF5F0'; // Latar oranye muda lembut khas Shopee
+    body.style.backgroundColor = '#FFF5F0';
+    if (element) element.classList.add('bg-orange-500', 'text-white');
   } else if (mp === 'TikTok Shop') {
-    body.style.backgroundColor = '#121212'; // Latar gelap eksklusif khas TikTok
+    body.style.backgroundColor = '#121212';
+    if (element) element.classList.add('bg-black', 'text-white');
+  } else if (mp === 'Tokopedia') {
+    body.style.backgroundColor = '#F0FDF4';
+    if (element) element.classList.add('bg-emerald-600', 'text-white');
   } else {
-    body.style.backgroundColor = '#F8FAFC'; // Warna latar default
+    body.style.backgroundColor = '#F8FAFC';
+    if (element) element.classList.add('bg-[#165DFF]', 'text-white');
   }
 
   renderProducts();
@@ -561,6 +580,29 @@
       const text = `${activeShareItem.code} - ${activeShareItem.name}\n${activeShareItem.affiliate_url}`;
       navigator.clipboard.writeText(text);
       alert('Teks berhasil disalin!');
+    }
+    function editProduct(id) {
+  const p = productsData.find(item => item.id == id);
+  if (!p) return;
+  
+  // Mengisi form admin otomatis dengan data produk yang diedit
+  if (document.getElementById('prod-id')) document.getElementById('prod-id').value = p.id;
+  if (document.getElementById('prod-code')) document.getElementById('prod-code').value = p.code;
+  if (document.getElementById('prod-name')) document.getElementById('prod-name').value = p.name;
+  if (document.getElementById('prod-category')) document.getElementById('prod-category').value = p.category;
+  if (document.getElementById('prod-marketplace')) document.getElementById('prod-marketplace').value = p.marketplace;
+  if (document.getElementById('prod-affiliate')) document.getElementById('prod-affiliate').value = p.affiliate_url || '';
+  if (document.getElementById('prod-url')) document.getElementById('prod-url').value = p.affiliate_url || '';
+  if (document.getElementById('prod-image')) document.getElementById('prod-image').value = p.image_url || '';
+  if (document.getElementById('prod-popular')) document.getElementById('prod-popular').checked = p.is_popular || false;
+  if (document.getElementById('prod-newest')) document.getElementById('prod-newest').checked = p.is_newest || false;
+  
+  if (document.getElementById('form-title')) {
+    document.getElementById('form-title').innerText = 'Edit Produk';
+  }
+  
+  // Otomatis scroll layar HP ke atas ke arah formulir
+  window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>
 </body>
