@@ -613,7 +613,7 @@ function editProduct(id) {
       document.getElementById('share-modal').classList.remove('hidden');
       document.getElementById('share-modal').classList.add('flex');
     }
-
+function
     function closeShareModal() {
       document.getElementById('share-modal').classList.add('hidden');
       document.getElementById('share-modal').classList.remove('flex');
@@ -635,29 +635,6 @@ function editProduct(id) {
       const text = `${activeShareItem.code} - ${activeShareItem.name}\n${activeShareItem.affiliate_url}`;
       navigator.clipboard.writeText(text);
       alert('Teks berhasil disalin!');
-    }
-    function editProduct(id) {
-  const p = productsData.find(item => item.id == id);
-  if (!p) return;
-  
-  // Mengisi form admin otomatis dengan data produk yang diedit
-  if (document.getElementById('prod-id')) document.getElementById('prod-id').value = p.id;
-  if (document.getElementById('prod-code')) document.getElementById('prod-code').value = p.code;
-  if (document.getElementById('prod-name')) document.getElementById('prod-name').value = p.name;
-  if (document.getElementById('prod-category')) document.getElementById('prod-category').value = p.category;
-  if (document.getElementById('prod-marketplace')) document.getElementById('prod-marketplace').value = p.marketplace;
-  if (document.getElementById('prod-affiliate')) document.getElementById('prod-affiliate').value = p.affiliate_url || '';
-  if (document.getElementById('prod-url')) document.getElementById('prod-url').value = p.affiliate_url || '';
-  if (document.getElementById('prod-image')) document.getElementById('prod-image').value = p.image_url || '';
-  if (document.getElementById('prod-popular')) document.getElementById('prod-popular').checked = p.is_popular || false;
-  if (document.getElementById('prod-newest')) document.getElementById('prod-newest').checked = p.is_newest || false;
-  
-  if (document.getElementById('form-title')) {
-    document.getElementById('form-title').innerText = 'Edit Produk';
-  }
-  
-  // Otomatis scroll layar HP ke atas ke arah formulir
-  window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>
 </body>
